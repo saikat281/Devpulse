@@ -48,12 +48,32 @@ const getAllIssues = async (req: Request, res: Response) => {
       message: "Issue created successfully",
       data: result
     })
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({
 
       success: false,
-      message: "Something went Wrong",
+      message: error.message,
 
+    })
+  }
+};
+
+const getSingleIssue = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const result = await isssuesService.getSingleIssueFromDB(id as string);
+    return res.status(200).json({
+      success: true,
+      message: "Issue retrived successfully",
+      data: result
+    })
+  } catch (error: any) {
+    const statusCode = error.statusCode || 500;
+    const message = statusCode === 500 ? "Something went wrong" : error.message;
+    return res.status(500).json({
+
+      success: false,
+      message: error.message,
 
     })
   }
@@ -61,5 +81,5 @@ const getAllIssues = async (req: Request, res: Response) => {
 
 
 export const issuesController = {
-  createIssues, getAllIssues
+  createIssues, getAllIssues, getSingleIssue,
 }

@@ -55,8 +55,29 @@ const getAllIssuesFromDB = async (payload: IQueriesAllIssue) => {
     return newIssuesData;
 };
 
+const getSingleIssueFromDB = async (id: string) => {
+  const result = await pool.query(
+    `
+    SELECT * FROM issues WHERE id=$1
+    `,
+    [id],
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error("Issue not found");
+  }
+
+  const issue = result.rows[0];
+
+  const formatedIssue = await formatSingleIssue(issue);
+
+
+  return formatedIssue;
+};
+
+
 
 
 export const isssuesService = {
-    createIssuesInDB, getAllIssuesFromDB
+    createIssuesInDB, getAllIssuesFromDB,getSingleIssueFromDB
 }
