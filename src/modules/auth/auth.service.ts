@@ -1,12 +1,14 @@
+import config from "../../config";
 import { pool } from "../../db";
 import { userRoles } from "../../types";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken"
 
 const createUserInDB = async (payload: any) => {
     const { name, email, password, role } = payload;
 
     if (role && role !== userRoles.contributor && role !== userRoles.maintainer) {
-        throw new Error("Invalid Role!");
+        throw new Error("Invalid Role! Role must be contributor or maintainer");
     }
 
     const passwordHash = await bcrypt.hash(password, 15);
@@ -24,8 +26,49 @@ const createUserInDB = async (payload: any) => {
     return result;
 }
 
+const loginUserIntoDB = async (payload: any) => {
+  
+  //   console.log(payload);
+
+  const { email, password } = payload;
+
+  
+
+  const userData = await pool.query(
+    `
+        SELECT * FROM users WHERE email=$1
+        `,
+    [email],
+  );
+
+  if (userData.rowCount === 0) {
+    throw new Error("Invalid credentials!");
+  }
+
+  const user = userData.rows[0];
+
+  const MatchPassword = await bcrypt.compare(password, user.password);
+  console.log(MatchPassword)
+  if (!MatchPassword) {
+    throw new Error("Invalid credentials!");
+  }
+
+  const jwtPayload = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+
+  const accesstoken = jwt.sign(jwtPayload, config.jwt_secret as string, {
+    expiresIn: "1d",
+  });
+  delete user.password;
+  return { accesstoken, user };
+};
+
 
 
 export const authService = {
-    createUserInDB,
+    createUserInDB,loginUserIntoDB
 }
