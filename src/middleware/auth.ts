@@ -21,6 +21,8 @@ const auth = (...roles: Roles[]) => {
             token as string,
             config.jwt_secret as string,
         ) as JwtPayload;
+        
+        console.log(decoded);
 
         if (!decoded?.email) {
             return res.status(401).json({
@@ -52,7 +54,8 @@ const auth = (...roles: Roles[]) => {
             return res.status(403).json({
 
                 success: false,
-                message: "Access forbidden!"
+                message: "Access forbidden!",
+                data:decoded?.role
 
             })
         }

@@ -91,22 +91,42 @@ const updateIssue = async (req: Request, res: Response) => {
       req.body,
     );
     return res.status(200).json({
-      success:true,
+      success: true,
       message: "Issue updated successfully",
-      data:result
+      data: result
     })
   } catch (error: any) {
     res.status(500).json({
 
-            success: false,
-            message: error.message,
-            data: error
+      success: false,
+      message: error.message,
+      data: error
 
-        })
+    })
+  }
+};
+
+const deleteIssue = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const result = await isssuesService.deleteIssueInDB(id as string);
+    return res.status(200).json({
+      success: true,
+      message: "Issue deleted successfully"
+    })
+
+  } catch (error: any) {
+    res.status(500).json({
+
+      success: false,
+      message: error.message,
+      data: error
+
+    })
   }
 };
 
 
 export const issuesController = {
-  createIssues, getAllIssues, getSingleIssue,updateIssue
+  createIssues, getAllIssues, getSingleIssue, updateIssue, deleteIssue
 }
