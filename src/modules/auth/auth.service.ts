@@ -3,8 +3,9 @@ import { pool } from "../../db";
 import { userRoles } from "../../types";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken"
+import type { ILoginPayload, Iuser } from "./auth.interface";
 
-const createUserInDB = async (payload: any) => {
+const createUserInDB = async (payload: Iuser) => {
     const { name, email, password, role } = payload;
 
     if (role && role !== userRoles.contributor && role !== userRoles.maintainer) {
@@ -26,9 +27,9 @@ const createUserInDB = async (payload: any) => {
     return result;
 }
 
-const loginUserIntoDB = async (payload: any) => {
+const loginUserIntoDB = async (payload: ILoginPayload) => {
   
-  //   console.log(payload);
+
 
   const { email, password } = payload;
 
