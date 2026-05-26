@@ -1,5 +1,5 @@
 import { pool } from "../../db";
-import type { IssueStatus, IssueType } from "../../types";
+import { userRoles, type IssueStatus, type IssueType } from "../../types";
 import formatSingleIssue from "../../utility/formatSingleIssue";
 import type { IIssues, IQueriesAllIssue } from "./issues.interface";
 
@@ -75,9 +75,49 @@ const getSingleIssueFromDB = async (id: string) => {
   return formatedIssue;
 };
 
+const updateIssueInDB = async (
+  isssueId: string,
+  userId: string,
+  userRole: string,
+  payload: Partial<IIssues>,
+) => {
+  const issue = await pool.query(
+    `
+    SELECT status , reporter_id FROM issues WHERE id=$1
+    `,
+    [isssueId],
+  );
+  if (issue.rowCount === 0) {
+    throw new Error("Issue not found")
+  }
+  const { status, reporter_id } = issue.rows[0];
 
+
+  if (userId !== reporter_id && userRole !== userRoles.maintainer) {
+    throw new Error("Access Forbidden! You can only update your own issues.")
+  }
+
+
+  if (
+    userId === reporter_id &&
+    status !== "open" &&
+    userRole !== userRoles.maintainer
+  ) {
+    throw new Error("Access Forbidden! You can only update your own open issues.");
+  }
+  
+  const { title, description, type, status: updatedStatus } = payload;
+
+  const result = await pool.query(
+    `
+    UPDATE issues SET title=COALESCE($1 , title), description = COALESCE($2, description), type = COALESCE($3, type), status = COALESCE($4, status), updated_at = NOW() WHERE id=$5 RETURNING *
+    `,
+    [title, description, type, updatedStatus, isssueId],
+  );
+  return result.rows[0];
+};
 
 
 export const isssuesService = {
-    createIssuesInDB, getAllIssuesFromDB,getSingleIssueFromDB
+    createIssuesInDB, getAllIssuesFromDB,getSingleIssueFromDB,updateIssueInDB
 }
